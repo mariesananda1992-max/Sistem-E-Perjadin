@@ -14,7 +14,9 @@ import {
   Calendar,
   AlertCircle,
   Briefcase,
-  FileCheck2
+  FileCheck2,
+  KeyRound,
+  UserCheck
 } from 'lucide-react';
 import { PerjalananDinas } from '../../types';
 
@@ -22,12 +24,16 @@ interface DashboardViewProps {
   onOpenAjukan: () => void;
   onSelectPerjalanan: (perjalanan: PerjalananDinas) => void;
   onNavigateTab: (tab: string) => void;
+  onOpenUbahNama?: () => void;
+  onOpenLogin?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ 
   onOpenAjukan, 
   onSelectPerjalanan, 
-  onNavigateTab 
+  onNavigateTab,
+  onOpenUbahNama,
+  onOpenLogin,
 }) => {
   const { currentUser, akunBelanjaList, perjalananList } = useApp();
 
@@ -126,11 +132,33 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {onOpenUbahNama && (
+            <button
+              onClick={onOpenUbahNama}
+              className="py-2 px-3 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+              title="Ubah Nama Lengkap & Profil Akun Aktif"
+            >
+              <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Ubah Nama</span>
+            </button>
+          )}
+
+          {onOpenLogin && (
+            <button
+              onClick={onOpenLogin}
+              className="py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+              title="Lihat Data Kredensial & Ganti Akun"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Data Login</span>
+            </button>
+          )}
+
           {(currentUser.role === 'pegawai' || currentUser.role === 'admin' || currentUser.role === 'operator') && (
             <button
               onClick={onOpenAjukan}
-              className="py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+              className="py-2 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" />
               <span>Buat Pengajuan Perjalanan</span>
@@ -138,7 +166,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           )}
           <button
             onClick={() => onNavigateTab('anggaran')}
-            className="py-2.5 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+            className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-colors cursor-pointer border border-slate-200"
           >
             Lihat Pagu
           </button>

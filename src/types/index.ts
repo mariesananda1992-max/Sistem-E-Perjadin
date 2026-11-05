@@ -5,6 +5,7 @@ export interface User {
   nip: string;
   nama: string;
   email: string;
+  password?: string;
   role: UserRole;
   unitKerjaId: string;
   unitKerjaNama: string;

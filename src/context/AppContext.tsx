@@ -25,6 +25,9 @@ interface AppContextType {
   currentUser: User;
   setCurrentUser: (user: User) => void;
   switchRole: (role: UserRole) => void;
+  loginUser: (nipOrEmail: string, kataSandi: string) => { success: boolean; message: string; user?: User };
+  logoutUser: () => void;
+  ubahNamaDanProfil: (data: { nama: string; nip?: string; email?: string; jabatan?: string; password?: string }) => { success: boolean; message: string };
   users: User[];
   tambahUser: (user: Omit<User, 'id'>) => void;
   updateUser: (id: string, user: Partial<User>) => void;
@@ -115,15 +118,16 @@ interface AppContextType {
   importDatabaseJSON: (jsonStr: string) => boolean;
 }
 
-const STORAGE_KEY = 'eperjadin_kendal_data_v2';
+const STORAGE_KEY = 'eperjadin_kendal_data_v3';
 
 // Initial Seeds
 const SEED_USERS: User[] = [
   {
     id: 'usr-1',
     nip: '19820315 200112 1 002',
-    nama: 'Bambang Sudarsono, S.STP, M.Si',
-    email: 'bambang.pptk@kendalkab.go.id',
+    nama: 'Marie Sananda, S.STP, M.Si',
+    email: 'mariesananda1992@gmail.com',
+    password: 'password123',
     role: 'admin',
     unitKerjaId: 'unit-1',
     unitKerjaNama: 'Bagian Pemerintahan Setda Kendal',
@@ -136,6 +140,7 @@ const SEED_USERS: User[] = [
     nip: '19740512 199803 2 004',
     nama: 'Dra. Nurhasanah, M.M.',
     email: 'nurhasanah.kpa@kendalkab.go.id',
+    password: 'password123',
     role: 'atasan',
     unitKerjaId: 'unit-1',
     unitKerjaNama: 'Bagian Pemerintahan Setda Kendal',
@@ -148,6 +153,7 @@ const SEED_USERS: User[] = [
     nip: '19850920 200801 2 007',
     nama: 'Sri Wahyuni, S.E.',
     email: 'sri.bendahara@kendalkab.go.id',
+    password: 'password123',
     role: 'bendahara',
     unitKerjaId: 'unit-1',
     unitKerjaNama: 'Bagian Pemerintahan Setda Kendal',
@@ -160,6 +166,7 @@ const SEED_USERS: User[] = [
     nip: '19951103 201903 2 008',
     nama: 'Anisa Rahmawati, S.Tr.IP',
     email: 'anisa.operator@kendalkab.go.id',
+    password: 'password123',
     role: 'operator',
     unitKerjaId: 'unit-1',
     unitKerjaNama: 'Bagian Pemerintahan Setda Kendal',
@@ -172,6 +179,7 @@ const SEED_USERS: User[] = [
     nip: '19890714 201101 1 005',
     nama: 'Ahmad Fauzi, S.Kom',
     email: 'ahmad.fauzi@kendalkab.go.id',
+    password: 'password123',
     role: 'pegawai',
     unitKerjaId: 'unit-1',
     unitKerjaNama: 'Bagian Pemerintahan Setda Kendal',
@@ -184,6 +192,7 @@ const SEED_USERS: User[] = [
     nip: '19920822 201502 2 006',
     nama: 'Dewi Lestari, S.AP',
     email: 'dewi.lestari@kendalkab.go.id',
+    password: 'password123',
     role: 'pegawai',
     unitKerjaId: 'unit-1',
     unitKerjaNama: 'Bagian Pemerintahan Setda Kendal',
@@ -357,7 +366,7 @@ const SEED_PEJABAT: PejabatPenandatangan[] = [
   {
     id: 'pjb-2',
     peran: 'pptk',
-    nama: 'Bambang Sudarsono, S.STP, M.Si',
+    nama: 'Marie Sananda, S.STP, M.Si',
     nip: '19820315 200112 1 002',
     jabatanDinas: 'Ketua Tim Kerja Administrasi Kewilayahan',
     keteranganPeran: 'Pejabat Pelaksana Teknis Kegiatan (PPTK)',
@@ -453,7 +462,15 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load state from localStorage or initialize with seed data
   const [currentUser, setCurrentUser] = useState<User>(() => {
-    return SEED_USERS[0]; // Admin by default for full preview
+    const saved = localStorage.getItem(`${STORAGE_KEY}_currentUser`);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        // fallback
+      }
+    }
+    return SEED_USERS[0]; // Admin by default: Marie Sananda, S.STP, M.Si
   });
 
   const [users, setUsers] = useState<User[]>(() => {
@@ -621,7 +638,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           { status: 'menunggu_verifikasi_operator', waktu: '2026-02-18T11:30:00Z', oleh: 'Ahmad Fauzi, S.Kom', catatan: 'Bukti & laporan diunggah.' },
           { status: 'menunggu_verifikasi_bendahara', waktu: '2026-02-19T08:45:00Z', oleh: 'Anisa Rahmawati, S.Tr.IP', catatan: 'Berkas lengkap dan diverifikasi operator.' },
           { status: 'terverifikasi_bendahara', waktu: '2026-02-19T14:00:00Z', oleh: 'Sri Wahyuni, S.E.', catatan: 'SPJ diverifikasi, masuk buku kas.' },
-          { status: 'selesai', waktu: '2026-02-20T10:00:00Z', oleh: 'Bambang Sudarsono, S.STP, M.Si', catatan: 'Arsip final lengkap.' },
+          { status: 'selesai', waktu: '2026-02-20T10:00:00Z', oleh: 'Marie Sananda, S.STP, M.Si', catatan: 'Arsip final lengkap.' },
         ],
         riwayatRevisi: [],
       },
@@ -641,14 +658,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         subKegiatanId: 'sub-1',
         akunBelanjaId: 'acc-2',
         pegawaiPengajuId: 'usr-1',
-        pegawaiPengajuNama: 'Bambang Sudarsono, S.STP, M.Si',
+        pegawaiPengajuNama: 'Marie Sananda, S.STP, M.Si',
         pegawaiPengajuNip: '19820315 200112 1 002',
         peserta: [
           {
             id: 'pst-3',
             pegawaiId: 'usr-1',
             nip: '19820315 200112 1 002',
-            nama: 'Bambang Sudarsono, S.STP, M.Si',
+            nama: 'Marie Sananda, S.STP, M.Si',
             jabatan: 'Ketua Tim Administrasi Kewilayahan',
             golongan: 'Pembina (IV/a)',
             uangMuka: 4890000,
@@ -695,7 +712,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           kesimpulanTindakLanjut: 'Melanjutkan proses uji publik bersama Bagian Hukum Setda dan DPRD Kabupaten Kendal.',
           penutup: 'Laporan ini disusun dengan sebenar-benarnya.',
           terakhirDiperbarui: '2026-03-05T14:20:00Z',
-          diperbaruiOleh: 'Bambang Sudarsono, S.STP, M.Si',
+          diperbaruiOleh: 'Marie Sananda, S.STP, M.Si',
         },
         berkas: [
           {
@@ -706,7 +723,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             tipeFile: 'pdf',
             ukuranKB: 512,
             keterangan: 'SPT bertandatangan KPA',
-            diunggahOleh: 'Bambang Sudarsono, S.STP, M.Si',
+            diunggahOleh: 'Marie Sananda, S.STP, M.Si',
             diunggahPada: '2026-03-01T08:00:00Z',
           },
           {
@@ -717,7 +734,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             tipeFile: 'pdf',
             ukuranKB: 420,
             keterangan: 'Tiket Kereta Api Eksekutif PP Kendal-Jakarta',
-            diunggahOleh: 'Bambang Sudarsono, S.STP, M.Si',
+            diunggahOleh: 'Marie Sananda, S.STP, M.Si',
             diunggahPada: '2026-03-04T16:00:00Z',
           },
           {
@@ -728,17 +745,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             tipeFile: 'jpg',
             ukuranKB: 640,
             keterangan: 'Pertemuan di Gedung B Kemendagri RI',
-            diunggahOleh: 'Bambang Sudarsono, S.STP, M.Si',
+            diunggahOleh: 'Marie Sananda, S.STP, M.Si',
             diunggahPada: '2026-03-04T17:00:00Z',
           },
         ],
         versiTemplateDipakai: 1,
         kodeVerifikasiQR: 'VERIF-KND-2026-095-B7D2',
         riwayatStatus: [
-          { status: 'draft', waktu: '2026-02-23T10:00:00Z', oleh: 'Bambang Sudarsono, S.STP, M.Si' },
-          { status: 'diajukan', waktu: '2026-02-23T13:00:00Z', oleh: 'Bambang Sudarsono, S.STP, M.Si' },
+          { status: 'draft', waktu: '2026-02-23T10:00:00Z', oleh: 'Marie Sananda, S.STP, M.Si' },
+          { status: 'diajukan', waktu: '2026-02-23T13:00:00Z', oleh: 'Marie Sananda, S.STP, M.Si' },
           { status: 'disetujui_atasan', waktu: '2026-02-24T08:30:00Z', oleh: 'Dra. Nurhasanah, M.M.' },
-          { status: 'menunggu_verifikasi_operator', waktu: '2026-03-04T18:00:00Z', oleh: 'Bambang Sudarsono, S.STP, M.Si' },
+          { status: 'menunggu_verifikasi_operator', waktu: '2026-03-04T18:00:00Z', oleh: 'Marie Sananda, S.STP, M.Si' },
           { status: 'menunggu_verifikasi_bendahara', waktu: '2026-03-05T09:00:00Z', oleh: 'Anisa Rahmawati, S.Tr.IP' },
         ],
         riwayatRevisi: [],
@@ -1041,6 +1058,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Persist to localStorage on changes
   useEffect(() => {
+    localStorage.setItem(`${STORAGE_KEY}_currentUser`, JSON.stringify(currentUser));
+  }, [currentUser]);
+
+  useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY}_users`, JSON.stringify(users));
   }, [users]);
 
@@ -1124,6 +1145,81 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         role: newRole,
       });
     }
+  };
+
+  // Login user authentication
+  const loginUser = (nipOrEmail: string, kataSandi: string) => {
+    const cleanInput = nipOrEmail.trim().toLowerCase();
+    const user = users.find(
+      u => (u.email && u.email.toLowerCase() === cleanInput) ||
+           (u.nip && u.nip.replace(/\s+/g, '') === cleanInput.replace(/\s+/g, ''))
+    );
+
+    if (!user) {
+      return { success: false, message: 'NIP atau Email tidak ditemukan dalam basis data sistem.' };
+    }
+
+    if (!user.statusAktif) {
+      return { success: false, message: 'Akun ini sedang dinonaktifkan oleh Administrator.' };
+    }
+
+    const expectedPassword = user.password || 'password123';
+    if (kataSandi && kataSandi !== expectedPassword) {
+      return { success: false, message: 'Kata sandi tidak sesuai. Silakan periksa kembali.' };
+    }
+
+    setCurrentUser(user);
+    catatAudit('AUTENTIKASI', 'Login Pengguna', `Pengguna ${user.nama} (${user.role.toUpperCase()}) berhasil masuk.`);
+    return { success: true, message: `Berhasil masuk. Selamat datang, ${user.nama}!`, user };
+  };
+
+  // Logout user
+  const logoutUser = () => {
+    catatAudit('AUTENTIKASI', 'Logout Pengguna', `Pengguna ${currentUser.nama} keluar dari sistem.`);
+  };
+
+  // Ubah Nama & Profil Pengguna
+  const ubahNamaDanProfil = (data: { nama: string; nip?: string; email?: string; jabatan?: string; password?: string }) => {
+    if (!data.nama || data.nama.trim().length < 3) {
+      return { success: false, message: 'Nama lengkap harus diisi minimal 3 karakter.' };
+    }
+
+    const namaLama = currentUser.nama;
+    const nipLama = currentUser.nip;
+    const updatedUser: User = {
+      ...currentUser,
+      nama: data.nama.trim(),
+      nip: data.nip !== undefined && data.nip.trim() !== '' ? data.nip.trim() : currentUser.nip,
+      email: data.email !== undefined && data.email.trim() !== '' ? data.email.trim() : currentUser.email,
+      jabatan: data.jabatan !== undefined && data.jabatan.trim() !== '' ? data.jabatan.trim() : currentUser.jabatan,
+      password: data.password && data.password.trim() !== '' ? data.password : (currentUser.password || 'password123'),
+    };
+
+    setCurrentUser(updatedUser);
+    setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+
+    // Also update in pejabat list if this user is a signatory (PPTK / KPA / Bendahara)
+    setPejabatList(prev => prev.map(pjb => {
+      if (pjb.nip === nipLama || pjb.nama === namaLama) {
+        return {
+          ...pjb,
+          nama: updatedUser.nama,
+          nip: updatedUser.nip,
+          jabatanDinas: updatedUser.jabatan || pjb.jabatanDinas,
+        };
+      }
+      return pjb;
+    }));
+
+    catatAudit(
+      'AUTENTIKASI',
+      'Ubah Profil & Nama',
+      `Data pengguna diperbarui: "${namaLama}" menjadi "${updatedUser.nama}" (${updatedUser.email})`,
+      namaLama,
+      updatedUser.nama
+    );
+
+    return { success: true, message: 'Nama dan profil pengguna berhasil diperbarui!' };
   };
 
   // User management
@@ -2147,6 +2243,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentUser,
         setCurrentUser,
         switchRole,
+        loginUser,
+        logoutUser,
+        ubahNamaDanProfil,
         users,
         tambahUser,
         updateUser,

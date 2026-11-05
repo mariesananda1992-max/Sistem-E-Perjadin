@@ -20,6 +20,8 @@ import { TemplateDokumenView } from './components/template/TemplateDokumenView';
 import { AuditLogView } from './components/audit/AuditLogView';
 import { CetakDokumenModal } from './components/dokumen/CetakDokumenModal';
 import { HelpFlowModal } from './components/common/HelpFlowModal';
+import { LoginModal } from './components/auth/LoginModal';
+import { UbahNamaModal } from './components/auth/UbahNamaModal';
 import { PerjalananDinas } from './types';
 
 function MainApp() {
@@ -31,6 +33,8 @@ function MainApp() {
   // Modals
   const [isAjukanModalOpen, setIsAjukanModalOpen] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isUbahNamaModalOpen, setIsUbahNamaModalOpen] = useState(false);
   const [printModalConfig, setPrintModalConfig] = useState<{
     isOpen: boolean;
     docType: 'spt' | 'laporan' | 'rincian_biaya';
@@ -74,6 +78,8 @@ function MainApp() {
           setActiveTab(tab);
         }}
         onOpenHelp={() => setIsHelpModalOpen(true)}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
+        onOpenUbahNama={() => setIsUbahNamaModalOpen(true)}
       />
 
       {/* Main Workspace Layout */}
@@ -101,6 +107,8 @@ function MainApp() {
                 setSelectedPerjalananId(null);
                 setActiveTab(tab);
               }}
+              onOpenUbahNama={() => setIsUbahNamaModalOpen(true)}
+              onOpenLogin={() => setIsLoginModalOpen(true)}
             />
           )}
 
@@ -158,6 +166,18 @@ function MainApp() {
       <HelpFlowModal
         isOpen={isHelpModalOpen}
         onClose={() => setIsHelpModalOpen(false)}
+      />
+
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onOpenUbahNama={() => setIsUbahNamaModalOpen(true)}
+      />
+
+      <UbahNamaModal
+        isOpen={isUbahNamaModalOpen}
+        onClose={() => setIsUbahNamaModalOpen(false)}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
       />
 
     </div>

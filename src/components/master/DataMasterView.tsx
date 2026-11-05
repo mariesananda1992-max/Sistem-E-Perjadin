@@ -318,9 +318,10 @@ export const DataMasterView: React.FC = () => {
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-600 font-semibold text-left">
                   <th className="py-2.5 px-3">Nama Pegawai</th>
-                  <th className="py-2.5 px-3">NIP</th>
+                  <th className="py-2.5 px-3">NIP & Email</th>
                   <th className="py-2.5 px-3">Jabatan & Golongan</th>
                   <th className="py-2.5 px-3">Peran Akses</th>
+                  <th className="py-2.5 px-3">Kata Sandi</th>
                   <th className="py-2.5 px-3 text-center">Status</th>
                   <th className="py-2.5 px-3 text-center">Aksi</th>
                 </tr>
@@ -329,9 +330,17 @@ export const DataMasterView: React.FC = () => {
                 {users.map(u => (
                   <tr key={u.id} className="hover:bg-slate-50/60">
                     <td className="py-2.5 px-3 font-semibold text-slate-900">{u.nama}</td>
-                    <td className="py-2.5 px-3 font-mono text-slate-600">{u.nip}</td>
+                    <td className="py-2.5 px-3 text-slate-600">
+                      <div className="font-mono text-[11px]">{u.nip}</div>
+                      <div className="text-[11px] text-emerald-700 font-medium">{u.email}</div>
+                    </td>
                     <td className="py-2.5 px-3 text-slate-700">{u.jabatan} ({u.golongan})</td>
                     <td className="py-2.5 px-3 capitalize font-medium text-slate-800">{u.role}</td>
+                    <td className="py-2.5 px-3">
+                      <code className="px-1.5 py-0.5 rounded bg-slate-100 font-mono text-[11px] text-slate-700">
+                        {u.password || 'password123'}
+                      </code>
+                    </td>
                     <td className="py-2.5 px-3 text-center">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                         u.statusAktif ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-500'
